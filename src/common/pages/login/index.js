@@ -1,5 +1,6 @@
 import React from 'react';
 import { Form, Input, Button, notification, Icon } from 'antd';
+import fetchJsonp from 'fetch-jsonp';
 import createHistory from 'history/createHashHistory';
 
 import './index.less'
@@ -40,7 +41,7 @@ class LoginPage extends React.Component {
         return (
             <div className="loginpagewrap">
                 <div className="box">
-                    <p>Welcome to the ReactSPA</p>
+                    <p>Welcome to the mockx</p>
                     <div className="loginWrap">
                         <Form onSubmit={this.handleSubmit}>
                             <FormItem>
