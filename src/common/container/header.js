@@ -21,12 +21,13 @@ export default class Top extends React.Component {
 
     getUser = () => {
         this.setState({
-            username: 'Muyy'
+            username: localStorage.getItem('username')
         })
     }
 
     clear = (item) => {
         if (item.key === 'logOut') {
+            localStorage.setItem('username',null);
             this.props.clear()
         }
     }

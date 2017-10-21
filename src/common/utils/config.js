@@ -1,3 +1,7 @@
+export const common = {
+    domain: "http://127.0.0.1:3000"
+}
+
 export const musicKindList = [{
         value: 2,
         mean: '热歌榜',
