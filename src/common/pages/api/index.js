@@ -62,7 +62,7 @@ export default class Api extends React.Component {
                     for (let i = 0; i < songList.length; i++) {
                         songArray.push({name: songList[i].name, 
                             category: songList[i].category.name,
-                            url: common.domain+'/'+songList[i].category.name+'/'+songList[i].name, 
+                            url: common.domain+'/mock/'+songList[i].category.name+'/'+songList[i].name, 
                             json: songList[i].json, 
                             publishtime: songList[i].meta.createAt})
                     }
@@ -144,6 +144,7 @@ export default class Api extends React.Component {
 
     onOk(param) {
         message.success('添加成功')
+        debugger;
         this.onCancel()
     }
 
@@ -192,7 +193,7 @@ export default class Api extends React.Component {
             options: {
                 rules: [{
                     required: true,
-                    message: '歌曲名必输!',
+                    message: '名称必填!',
                 }]
             }
         }, {
@@ -206,7 +207,17 @@ export default class Api extends React.Component {
             options: {
                 rules: [{
                     required: true,
-                    message: '语种必输!',
+                    message: '类别必填!',
+                }]
+            }
+        }, {
+            label: 'json内容',
+            type: 'textarea',
+            name: 'json',
+            options: {
+                rules: [{
+                    required: true,
+                    message: 'json必填!',
                 }]
             }
         }, {
