@@ -13,17 +13,16 @@ import 'whatwg-fetch'
 import fetchJsonp from 'fetch-jsonp'
 import './index.less'
 import moment from 'moment'
-import {
+import {common,
     musicKindList,
-    languageKindList,
-    publishCountry
+    languageKindList
 } from '../../utils/config'
 
 require('es6-promise').polyfill();
 
 const confirm = Modal.confirm
 
-export default class Music extends React.Component {
+export default class Api extends React.Component {
     constructor(props) {
         super(props)
         this.state = {
@@ -42,7 +41,7 @@ export default class Music extends React.Component {
 
     // 获取表格数据
     fetchTableData = (typeId, searchFields) => {
-        fetchJsonp(`http://tingapi.ting.baidu.com/v1/restserver/ting?xml&calback=&from=webapp_music&method=baidu.ting.billboard.billList&type=${typeId}&size=100&offset=0`, {
+        fetchJsonp(common.domain+`/admin/mock/list?type=${typeId}&size=100&offset=0`, {
                 method: 'GET'
             })
             .then((res) => {
@@ -50,34 +49,25 @@ export default class Music extends React.Component {
             })
             .then((data) => {
                 const songArray = []
-                let songList = data.song_list
-                if (searchFields && searchFields.country && searchFields.country.toString() !== '0') { // 发行国家搜索
-                    // eslint-disable-next-line
-                    songList = songList.filter(ele => ele.country === publishCountry.find(t => t.value === parseInt(searchFields.country), 10).mean)
-                }
-                if (searchFields && searchFields.language && searchFields.language.toString() !== '0') { // 歌曲语种搜索
-                    // eslint-disable-next-line
-                    songList = songList.filter(ele => ele.language === languageKindList.find(t => t.value === parseInt(searchFields.language), 10).mean)
-                }
-                if (searchFields && searchFields.start) { // 发行时间段收索
-                    songList = songList.filter(ele => moment(ele.publishtime) >= moment(searchFields.start) && moment(ele.publishtime) <= moment(searchFields.end))
-                }
+                if (data.success) {
+                    let songList = data.data.mocks
+                    if (searchFields && searchFields.language && searchFields.language.toString() !== '0') { // 搜索
+                        // eslint-disable-next-line
+                        songList = songList.filter(ele => ele.language === languageKindList.find(t => t.value === parseInt(searchFields.language), 10).mean)
+                    }
+                    if (searchFields && searchFields.start) { // 发行时间段收索
+                        songList = songList.filter(ele => moment(ele.publishtime) >= moment(searchFields.start) && moment(ele.publishtime) <= moment(searchFields.end))
+                    }
 
-                for (let i = 0; i < songList.length; i++) {
-                    songArray.push({
-                        title: songList[i].title,
-                        author: songList[i].author,
-                        country: songList[i].country,
-                        language: songList[i].language,
-                        publishtime: songList[i].publishtime,
-                    })
+                    for (let i = 0; i < songList.length; i++) {
+                        songArray.push({name: songList[i].name, 
+                            category: songList[i].category.name,
+                            url: common.domain+'/'+songList[i].category.name+'/'+songList[i].name, 
+                            json: songList[i].json, 
+                            publishtime: songList[i].meta.createAt})
+                    }
+                    this.setState({tData: songArray, loading: false});
                 }
-                this.setState({
-                    tData: songArray
-                });
-                this.setState({
-                    loading: false
-                });
             })
             .catch((e) => {
                 console.log(e.message);
@@ -98,23 +88,14 @@ export default class Music extends React.Component {
             title: '类型(单独搜索)',
             key: 'type',
             type: 'select',
-            defaultValue: 2,
+            defaultValue: '全部',
             onChange: (value) => this.fetchTableData(value),
             items: () => musicKindList.map(ele => ({
                 value: ele.value,
                 mean: ele.mean
             })),
         }, {
-            title: '发行国家',
-            key: 'country',
-            type: 'select',
-            defaultValue: '全部',
-            items: () => publishCountry.map(ele => ({
-                value: ele.value,
-                mean: ele.mean
-            })),
-        }, {
-            title: '歌曲语种',
+            title: '类型',
             key: 'language',
             type: 'select',
             defaultValue: '全部',
@@ -131,22 +112,22 @@ export default class Music extends React.Component {
 
     tableHeader = () => {
         return [{
-            dataIndex: 'title',
-            title: '歌曲名',
+            dataIndex: 'name',
+            title: '名称',
             width: 200,
             // render: (text, record) => {
             // }
-        }, {
-            dataIndex: 'author',
-            title: '歌手',
+        },{
+            dataIndex: 'url',
+            title: '接口地址',
+            width: 200,
+        },{
+            dataIndex: 'category',
+            title: '类别',
             width: 200,
         }, {
-            dataIndex: 'country',
-            title: '发行国家',
-            width: 200,
-        }, {
-            dataIndex: 'language',
-            title: '语种',
+            dataIndex: 'json',
+            title: 'json内容',
             width: 200,
         }, {
             dataIndex: 'publishtime',
@@ -205,9 +186,9 @@ export default class Music extends React.Component {
 
     fields = () => {
         return [{
-            label: '歌曲名',
+            label: '名称',
             type: 'input',
-            name: 'title',
+            name: 'name',
             options: {
                 rules: [{
                     required: true,
@@ -215,31 +196,7 @@ export default class Music extends React.Component {
                 }]
             }
         }, {
-            label: '歌手名',
-            type: 'input',
-            name: 'author',
-            options: {
-                rules: [{
-                    required: true,
-                    message: '歌手必输!',
-                }]
-            }
-        }, {
-            label: '发行国家',
-            type: 'select',
-            name: 'country',
-            items: () => publishCountry.map(ele => ({
-                key: ele.value,
-                value: ele.mean
-            })),
-            options: {
-                rules: [{
-                    required: true,
-                    message: '发行国家必输!',
-                }]
-            }
-        }, {
-            label: '歌曲语种',
+            label: '类别',
             type: 'select',
             name: 'language',
             items: () => languageKindList.map(ele => ({
@@ -268,67 +225,37 @@ export default class Music extends React.Component {
     fieldsEdit = () => {
         const item = this.state.item
         return [{
-            label: '歌曲名',
+            label: '名',
             type: 'input',
-            name: 'title',
-            items: item.title,
+            name: 'name',
+            items: item.name,
             options: {
-                initialValue: item.title,
+                initialValue: item.name,
                 rules: [{
                     required: true,
-                    message: '歌曲名必输!',
+                    message: '名必填!',
                 }]
             }
         }, {
-            label: '歌手名',
+            label: 'json',
             type: 'input',
-            name: 'author',
+            name: 'json',
             options: {
-                initialValue: item.author,
+                initialValue: item.json,
                 rules: [{
                     required: true,
-                    message: '歌手必输!',
+                    message: 'json必输!',
                 }]
             }
-        }, {
-            label: '发行国家',
-            type: 'select',
-            name: 'country',
-            items: () => publishCountry.map(ele => ({
-                key: ele.value,
-                value: ele.mean
-            })),
-            options: {
-                initialValue: item.country,
-                rules: [{
-                    required: true,
-                    message: '发行国家必输!',
-                }]
-            }
-        }, {
-            label: '歌曲语种',
-            type: 'select',
-            name: 'language',
-            items: () => languageKindList.map(ele => ({
-                key: ele.value,
-                value: ele.mean
-            })),
-            options: {
-                initialValue: item.language,
-                rules: [{
-                    required: true,
-                    message: '语种必输!',
-                }]
-            }
-        }, {
-            label: '发行时间',
+        },{
+            label: '发布时间',
             type: 'datetime',
             name: 'publishTime',
             options: {
                 initialValue: moment(item.publishtime),
                 rules: [{
                     required: true,
-                    message: '发行时间必输!',
+                    message: '发布时间必填!',
                 }]
             }
         }]
@@ -369,7 +296,7 @@ export default class Music extends React.Component {
                 <FormModal
                     modalKey="add"
                     visible={this.state.modalShow}
-                    title="添加音乐"
+                    title="添加"
                     fields={this.fields()}
                     onOk={this.onOk}
                     onCancel={this.onCancel}
@@ -378,7 +305,7 @@ export default class Music extends React.Component {
                 <FormModal
                     modalKey="Edit"
                     visible={this.state.modalShowEdit}
-                    title="修改音乐"
+                    title="修改"
                     fields={this.fieldsEdit()}
                     onOk={this.onOkEdit}
                     onCancel={this.onCancelEdit}

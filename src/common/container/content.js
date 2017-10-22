@@ -5,7 +5,7 @@ import './content.less'
 import index from 'pages/index'
 import follow from 'pages/follow'
 import Tools from 'pages/tools'
-import Music from 'pages/music'
+import Api from 'pages/api'
 import Todo from 'pages/todo'
 import Album from 'pages/album'
 import Editor from 'pages/editor'
@@ -27,8 +27,8 @@ export default class Contents extends React.Component {
             Route path = "/tools"
             component = { Tools }
             /> <
-            Route path = "/music"
-            component = { Music }
+            Route path = "/api"
+            component = { Api }
             /> <
             Route path = "/todo"
             component = { Todo }

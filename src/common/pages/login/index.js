@@ -3,6 +3,7 @@ import {Form, Input, Button, notification, Icon} from 'antd';
 import fetchJsonp from 'fetch-jsonp';
 import createHistory from 'history/createHashHistory';
 import {common} from '../../utils/config'
+import {util} from '../../utils/util'
 
 import './index.less'
 
@@ -30,6 +31,7 @@ class LoginPage extends React.Component {
             return res.json()
         }).then((data) => {
             if (data.success) {
+                util.setCookie('loginstate','1',1);
                 localStorage.setItem('username',username);
                 // 表单的路由处理
                 history.push('/index');
@@ -48,8 +50,17 @@ class LoginPage extends React.Component {
             color: '#108ee9'
         }}/>})
     }
+    componentWillMount() {
+        var loginstate = util.getCookie('loginstate');
+        if (loginstate === "1") {
+            history.push('/index');
+        }
+    }
     componentDidMount() {
-        this.openNotificationWithIcon('info',"请进行登录");
+        var loginstate = util.getCookie('loginstate');
+        if (loginstate !== "1") {
+            this.openNotificationWithIcon('info', "请进行登录");
+        }
     }
 
     render() {

@@ -2,6 +2,7 @@ import React from 'react'
 import { Menu, Icon, Layout } from 'antd'
 import { Link } from 'react-router-dom'
 // import * as screenfull from 'screenfull'
+import {util} from '../utils/util'
 import './header.less'
 
 const SubMenu = Menu.SubMenu
@@ -27,7 +28,8 @@ export default class Top extends React.Component {
 
     clear = (item) => {
         if (item.key === 'logOut') {
-            localStorage.setItem('username',null);
+            util.setCookie('loginstate','0',0);
+            localStorage.setItem('username','');
             this.props.clear()
         }
     }
