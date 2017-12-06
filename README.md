@@ -1,5 +1,5 @@
 ### mockx react应用
-
+mockx的react控制台，通过调用mockx提供的数据接口，来进行模拟数据的管理。
 ### Usage
 ```
 本地运行
@@ -23,8 +23,6 @@ yarn start || npm start
 - [ ] 使用ts重构
 
 ### Features
-* 音乐模块
-  * 用 fetch 调用了百度音乐 api
 * 工具模块
   * 实现对工资、房租、身体指数、年龄的智能计算
   * 用 redux 实现了待办事项模块

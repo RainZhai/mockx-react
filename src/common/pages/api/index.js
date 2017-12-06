@@ -13,10 +13,7 @@ import 'whatwg-fetch'
 import fetchJsonp from 'fetch-jsonp'
 import './index.less'
 import moment from 'moment'
-import {common,
-    musicKindList,
-    languageKindList
-} from '../../utils/config'
+import {common} from '../../utils/config'
 
 require('es6-promise').polyfill();
 
@@ -27,6 +24,7 @@ export default class Api extends React.Component {
         super(props)
         this.state = {
             tData: [],
+            catetories: [],
             item: {},
             loading: true,
             modalShow: false,
@@ -51,9 +49,9 @@ export default class Api extends React.Component {
                 const songArray = []
                 if (data.success) {
                     let songList = data.data.mocks
-                    if (searchFields && searchFields.language && searchFields.language.toString() !== '0') { // 搜索
+                    if (searchFields && searchFields.category && searchFields.category.toString() !== '') { // 搜索
                         // eslint-disable-next-line
-                        songList = songList.filter(ele => ele.language === languageKindList.find(t => t.value === parseInt(searchFields.language), 10).mean)
+                        songList = songList.filter(ele => ele.category === this.state.catetories.find(t => t.value === parseInt(searchFields.category), 10).name)
                     }
                     if (searchFields && searchFields.start) { // 发行时间段收索
                         songList = songList.filter(ele => moment(ele.publishtime) >= moment(searchFields.start) && moment(ele.publishtime) <= moment(searchFields.end))
@@ -74,10 +72,36 @@ export default class Api extends React.Component {
             });
     }
 
-    componentDidMount() {
-        this.fetchTableData('2') // 默认是热歌版
+    // 获取分类数据
+    fetchCatesData = () => {
+        fetchJsonp(common.domain+`/admin/category/list`, {
+                method: 'GET'
+            })
+            .then((res) => {
+                return res.json();
+            })
+            .then((data) => {
+                if (data.success) {
+                    this.setState({catetories: data.data.catetories});
+                }
+            })
+            .catch((e) => {
+                console.log(e.message);
+            });
     }
 
+    componentDidMount() {
+        //调用mock分类接口获取分类列表
+        this.fetchCatesData()
+        //调用mock列表接口获取列表数据
+        this.fetchTableData('2')
+    }
+    componentWillUnmount(){ 
+        //重写组件的setState方法，直接返回空
+        this.setState = (state,callback)=>{
+          return;
+        };  
+    }
     onSearch = (searchFields) => {
         const typeId = searchFields.type ? searchFields.type : 2
         this.fetchTableData(typeId, searchFields)
@@ -90,18 +114,18 @@ export default class Api extends React.Component {
             type: 'select',
             defaultValue: '全部',
             onChange: (value) => this.fetchTableData(value),
-            items: () => musicKindList.map(ele => ({
-                value: ele.value,
-                mean: ele.mean
+            items: () => this.state.catetories.map(ele => ({
+                value: ele._id,
+                mean: ele.name
             })),
         }, {
             title: '类型',
-            key: 'language',
+            key: 'category',
             type: 'select',
             defaultValue: '全部',
-            items: () => languageKindList.map(ele => ({
-                value: ele.value,
-                mean: ele.mean
+            items: () => this.state.catetories.map(ele => ({
+                value: ele._id,
+                mean: ele.name
             })),
         }, {
             title: '发行时间段',
@@ -144,7 +168,6 @@ export default class Api extends React.Component {
 
     onOk(param) {
         message.success('添加成功')
-        debugger;
         this.onCancel()
     }
 
@@ -199,10 +222,10 @@ export default class Api extends React.Component {
         }, {
             label: '类别',
             type: 'select',
-            name: 'language',
-            items: () => languageKindList.map(ele => ({
-                key: ele.value,
-                value: ele.mean
+            name: 'category',
+            items: () => this.state.catetories.map(ele => ({
+                key: ele._id,
+                value: ele.name
             })),
             options: {
                 rules: [{
