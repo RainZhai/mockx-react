@@ -39,6 +39,7 @@ export default class Api extends React.Component {
 
     // 获取表格数据
     fetchTableData = (typeId, searchFields) => {
+        let state = this.state;
         fetchJsonp(common.domain+`/admin/mock/list?type=${typeId}&size=100&offset=0`, {
                 method: 'GET'
             })
@@ -49,12 +50,15 @@ export default class Api extends React.Component {
                 const songArray = []
                 if (data.success) {
                     let songList = data.data.mocks
-                    if (searchFields && searchFields.category && searchFields.category.toString() !== '') { // 搜索
+                    // 分类搜索
+                    if (searchFields && searchFields.category && searchFields.category.toString() !== '') {
                         // eslint-disable-next-line
-                        songList = songList.filter(ele => ele.category === this.state.catetories.find(t => t.value === parseInt(searchFields.category), 10).name)
+                        let cate = state.catetories.find(t => t._id === searchFields.category).name;
+                        songList = songList.filter(ele => ele.category.name === cate);
                     }
-                    if (searchFields && searchFields.start) { // 发行时间段收索
-                        songList = songList.filter(ele => moment(ele.publishtime) >= moment(searchFields.start) && moment(ele.publishtime) <= moment(searchFields.end))
+                    //发行时间段搜索
+                    if (searchFields && searchFields.start) { 
+                        songList = songList.filter(ele => moment(ele.meta.createAt) >= moment(searchFields.start) && moment(ele.meta.createAt) <= moment(searchFields.end))
                     }
 
                     for (let i = 0; i < songList.length; i++) {
@@ -102,6 +106,7 @@ export default class Api extends React.Component {
           return;
         };  
     }
+    //搜索方法
     onSearch = (searchFields) => {
         const typeId = searchFields.type ? searchFields.type : 2
         this.fetchTableData(typeId, searchFields)
@@ -133,7 +138,7 @@ export default class Api extends React.Component {
             type: 'rangePicker',
         }]
     }
-
+    //列表头
     tableHeader = () => {
         return [{
             dataIndex: 'name',
@@ -159,16 +164,34 @@ export default class Api extends React.Component {
             width: 200,
         }, ]
     }
-
+    //点击添加打开弹框
     add() {
         this.setState({
             modalShow: true
         })
     }
-
+    //添加数据保存
     onOk(param) {
-        message.success('添加成功')
-        this.onCancel()
+        //+JSON.stringify({mock:param})
+        fetchJsonp(common.domain+`/admin/mock?mock%5Bname%5D=${param.name}&mock%5Bjson%5D=${param.json}&mock%5Bcategory%5D=${param.category}`, {
+            method: 'GET',
+            //body: JSON.stringify({mock:param})
+        })
+        .then((res) => {
+            return res.json();
+        })
+        .then((data) => {
+            if (data.success) {
+                message.success('添加成功')
+                this.onCancel()
+            }else{
+                message.error('出错了')
+            }
+        })
+        .catch((e) => {
+            console.log(e.message);
+            message.error('出错了')
+        });
     }
 
     onCancel() {
@@ -225,7 +248,8 @@ export default class Api extends React.Component {
             name: 'category',
             items: () => this.state.catetories.map(ele => ({
                 key: ele._id,
-                value: ele.name
+                value: ele._id,
+                mean: ele.name
             })),
             options: {
                 rules: [{
@@ -244,13 +268,13 @@ export default class Api extends React.Component {
                 }]
             }
         }, {
-            label: '发行时间',
+            label: '发布时间',
             type: 'datetime',
             name: 'publishTime',
             options: {
                 rules: [{
                     required: true,
-                    message: '发行时间必输!',
+                    message: '发布时间必填!',
                 }]
             }
         }]
