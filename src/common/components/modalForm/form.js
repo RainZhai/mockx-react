@@ -64,7 +64,7 @@ class ModForm extends React.Component {
     formatter={field.options.formatter}
     style={{ width: '100%' }}
   />
-
+  getInputHiddenField = field => <Input type="hidden" />
   getTextAreaField = field => (<Input type="textarea" rows={field.options.rows || 4} disabled={field.options.disabled} />)
 
   getSelectField = field => (<Select
@@ -140,6 +140,9 @@ class ModForm extends React.Component {
       switch (field.type) {
       case 'input':
         component = this.getInputField(field)
+        break;
+      case 'inputHidden':
+        component = this.getInputHiddenField(field)
         break;
       case 'inputNumber':
         component = this.getInputNumberField(field)

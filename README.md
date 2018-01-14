@@ -23,9 +23,8 @@ yarn start || npm start
 - [ ] 使用ts重构
 
 ### Features
-* 工具模块
-  * 实现对工资、房租、身体指数、年龄的智能计算
-  * 用 redux 实现了待办事项模块
+* 接口模块
+  * 实现对接口的增删改查,搜索等功能
 
 ### Third-party libraries
 * css动画库：Animate.css

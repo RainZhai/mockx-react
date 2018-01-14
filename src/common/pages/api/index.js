@@ -62,7 +62,9 @@ export default class Api extends React.Component {
                     }
 
                     for (let i = 0; i < songList.length; i++) {
-                        songArray.push({name: songList[i].name, 
+                        songArray.push({
+                            id: songList[i]._id, 
+                            name: songList[i].name, 
                             category: songList[i].category.name,
                             url: common.domain+'/mock/'+songList[i].category.name+'/'+songList[i].name, 
                             json: songList[i].json, 
@@ -106,6 +108,16 @@ export default class Api extends React.Component {
           return;
         };  
     }
+    //通过分类id获取分类对象
+    getCatetory(id){
+        let cates = this.state.catetories;
+        if(id){
+            cates.some(function(ele,i,arr){
+                return ele._id = id;
+            })
+            return cates[0];
+        }
+    }
     //搜索方法
     onSearch = (searchFields) => {
         const typeId = searchFields.type ? searchFields.type : 2
@@ -141,6 +153,10 @@ export default class Api extends React.Component {
     //列表头
     tableHeader = () => {
         return [{
+            dataIndex: 'id',
+            title: 'id',
+            width: 100
+        },{
             dataIndex: 'name',
             title: '名称',
             width: 200,
@@ -172,10 +188,8 @@ export default class Api extends React.Component {
     }
     //添加数据保存
     onOk(param) {
-        //+JSON.stringify({mock:param})
         fetchJsonp(common.domain+`/admin/mock?mock%5Bname%5D=${param.name}&mock%5Bjson%5D=${param.json}&mock%5Bcategory%5D=${param.category}`, {
-            method: 'GET',
-            //body: JSON.stringify({mock:param})
+            method: 'GET'
         })
         .then((res) => {
             return res.json();
@@ -183,6 +197,7 @@ export default class Api extends React.Component {
         .then((data) => {
             if (data.success) {
                 message.success('添加成功')
+                this.fetchTableData('2')
                 this.onCancel()
             }else{
                 message.error('出错了')
@@ -201,10 +216,25 @@ export default class Api extends React.Component {
     }
 
     onOkEdit(param) {
-        this.setState({
-            modalShowEdit: false
+        fetchJsonp(common.domain+`/admin/mock?mock%5B_id%5D=${param.id}&mock%5Bname%5D=${param.name}&mock%5Bjson%5D=${param.json}&mock%5Bcategory%5D=${param.category}`, {
+            method: 'GET'
         })
-        message.success('编辑成功')
+        .then((res) => {
+            return res.json();
+        })
+        .then((data) => {
+            if (data.success) {
+                message.success('修改成功');
+                this.fetchTableData('2')
+                this.onCancelEdit()
+            }else{
+                message.error('出错了')
+            }
+        })
+        .catch((e) => {
+            console.log(e.message);
+            message.error('出错了')
+        });
     }
 
     onCancelEdit() {
@@ -224,7 +254,22 @@ export default class Api extends React.Component {
                 title: '提示',
                 content: '确定删除吗',
                 onOk: () => {
-                    message.success('删除成功')
+                    fetchJsonp(common.domain+`/admin/mock/del?id=${item.id}`, {
+                        method: 'GET'
+                    })
+                    .then((res) => {return res.json();})
+                    .then((data) => {
+                        if (data.success) {
+                            message.success('删除成功')
+                            this.fetchTableData('2')
+                        }else{
+                            message.error('出错了')
+                        }
+                    })
+                    .catch((e) => {
+                        console.log(e.message);
+                        message.error('出错了')
+                    });
                 },
                 onCancel() {}
             })
@@ -248,8 +293,7 @@ export default class Api extends React.Component {
             name: 'category',
             items: () => this.state.catetories.map(ele => ({
                 key: ele._id,
-                value: ele._id,
-                mean: ele.name
+                value: ele.name
             })),
             options: {
                 rules: [{
@@ -267,23 +311,21 @@ export default class Api extends React.Component {
                     message: 'json必填!',
                 }]
             }
-        }, {
-            label: '发布时间',
-            type: 'datetime',
-            name: 'publishTime',
-            options: {
-                rules: [{
-                    required: true,
-                    message: '发布时间必填!',
-                }]
-            }
         }]
     }
 
     fieldsEdit = () => {
         const item = this.state.item
+        let catetories = this.state.catetories
         return [{
-            label: '名',
+            label: 'id',
+            name: 'id',
+            items: item.id,
+            options: {
+                initialValue: item.id
+            }
+        }, {
+            label: '名称',
             type: 'input',
             name: 'name',
             items: item.name,
@@ -294,9 +336,24 @@ export default class Api extends React.Component {
                     message: '名必填!',
                 }]
             }
+        },{
+            label: '类别',
+            type: 'select',
+            name: 'category',
+            items: () => catetories.map(ele => ({
+                key: ele._id,
+                value: ele.name
+            })),
+            options: {
+                rules: [{
+                    initialValue: item.category,
+                    required: true,
+                    message: '类别必填!',
+                }]
+            }
         }, {
             label: 'json',
-            type: 'input',
+            type: 'textarea',
             name: 'json',
             options: {
                 initialValue: item.json,
