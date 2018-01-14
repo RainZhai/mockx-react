@@ -7,6 +7,8 @@ yarn install || npm install
 yarn start || npm start
 ```
 
+![mockx react控制台](https://raw.githubusercontent.com/RainZhai/mockx-react/master/src/common/images/screen1.png)
+
 ### Tech Stack
 - [x] 打包构建：Babel Webpack(3.x)
 - [x] 热更新
